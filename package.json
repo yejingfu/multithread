@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "main": "build/Release/multithreading.node",
   "description": "Multi-threading implementation in Node.js",
+  "main": "index.js",
   "keywords": [
     "thread",
     "share memory"
@@ -23,6 +24,8 @@
     "url": "https://github.com/yejingfu/multithreading.git"
   },
   "scripts": {
+    "install": "node-gyp rebuild",
+    "test": "node ./test/hello.js"
   },
   "dependencies": {
     "nan": "*"
