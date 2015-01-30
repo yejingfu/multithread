@@ -12,8 +12,6 @@
 
 using namespace v8;
 
-static Persistent<ObjectTemplate> thread_template;
-static Persistent<String> id_symbol;
 
 NAN_METHOD(SayHello) {
   NanScope();
