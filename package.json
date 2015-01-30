@@ -1,0 +1,32 @@
+{
+  "name": "multithreading",
+  "version": "0.1.0",
+  "main": "build/Release/multithreading.node",
+  "description": "Multi-threading implementation in Node.js",
+  "keywords": [
+    "thread",
+    "share memory"
+  ],
+  "author": {
+    "name": "Jing Ye",
+    "email": "yejingfu@hotmail.com"
+  },
+  "homepage": "https://github.com/yejingfu/multithreading",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "file:LICENSE"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yejingfu/multithreading.git"
+  },
+  "scripts": {
+  },
+  "dependencies": {
+    "nan": "*"
+  },
+  "gypfile": true
+}
+
