@@ -1,3 +1,7 @@
+# node.js stuffs
+node_modules/
+build/
+
 # Compiled Object files
 *.slo
 *.lo
