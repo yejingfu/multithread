@@ -8,7 +8,7 @@
 #include <string>
 
 #include "nan.h"
-#include "nan_isolate_data_accessor.h"
+//#include "nan_isolate_data_accessor.h"
 
 using namespace v8;
 
@@ -21,7 +21,7 @@ NAN_METHOD(SayHello) {
 }
 
 void Init(Handle<Object> exports) {
-  exports->Set(NanNew("Hello"), NanNew<FunctionTemplate>(SayHello)->GetFunction());
+  exports->Set(NanNew("hello"), NanNew<FunctionTemplate>(SayHello)->GetFunction());
 }
 
 NODE_MODULE(multithread, Init)
