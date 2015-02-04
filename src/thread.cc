@@ -3,13 +3,13 @@
 #include "thread.h"
 #include "util.h"
 
-#include <pthread.h>
-#include <unistd.h>
-//#ifndef uv_cond_t
-#define uv_cond_signal(x) pthread_cond_signal(x)
-#define uv_cond_init(x) pthread_cond_init(x, NULL)
-#define uv_cond_wait(x,y) pthread_cond_wait(x, y)
-//#endif
+// #include <pthread.h>
+// #include <unistd.h>
+// //#ifndef uv_cond_t
+// #define uv_cond_signal(x) pthread_cond_signal(x)
+// #define uv_cond_init(x) pthread_cond_init(x, NULL)
+// #define uv_cond_wait(x,y) pthread_cond_wait(x, y)
+// //#endif
 
 using namespace v8;
 
@@ -150,15 +150,17 @@ void Thread::ThreadProc(void *arg) {
   NanSetIsolateData(pThread->m_isolate, pThread);
   if (v8::Locker::IsActive()) {
     v8::Locker locker(pThread->m_isolate);    // ensure one most thread accecc isolate per time 
+    pThread->m_isolate->Enter();
     EventLoop(pThread);
   }
   // on exit event loop
-  if (pThread->m_tasks.size() == 0) {
-    uv_async_send(&pThread->m_async_watcher);
-  }
-  pThread->m_isolate->Dispose();
-  delete pThread;
   printf("Jingfu: exiting sub thread...\n");
+  if (pThread->m_tasks.size() == 0) {
+    //uv_async_send(&pThread->m_async_watcher);
+  }
+  //pThread->m_isolate->Dispose();
+  //delete pThread;
+  printf("Jingfu: exiting sub thread 2...\n");
 }
 
 //static 

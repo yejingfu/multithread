@@ -5,6 +5,7 @@
       "sources": [
         "src/multithread.cc",
         "src/thread.cc",
+        "src/worker.cc",
         "src/util.cc"
       ],
       "include_dirs": [

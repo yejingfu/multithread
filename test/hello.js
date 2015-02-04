@@ -3,6 +3,7 @@ var mt = require('../build/Release/multithread');
 
 console.log(mt.hello());
 
+/*
 var thread = mt.createThread();
 if (!thread) {
   console.log('thread is undefined');
@@ -13,5 +14,16 @@ if (!thread) {
     console.log('done');
   }, 1000);
 
+}
+*/
+
+var worker = mt.createWorker('console.log("hey")', function(){
+  console.log('back');
+});
+
+if (!worker) {
+  console.log('failed to create worker');
+} else {
+  console.log('Succeed to create worker');
 }
 
