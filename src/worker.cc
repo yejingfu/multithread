@@ -60,21 +60,28 @@ void Worker::WorkerProc(uv_work_t *req) {
     worker->ReleaseIsolate();
     return;
   }
-  {
+
+  {  // wrap Lock within scope is very important
+    Locker myLocker(worker->m_isolate);
+    worker->m_isolate->Enter();
+  
     NanScope();
-    Persistent<Context> ctx;
+    Persistent<Context> ctx = Context::New();
     ctx->Enter();
     TryCatch tryCatch;
+    String::Utf8Value *result;
     Local<String> source = NanNew<String>(**worker->m_script, worker->m_script->length());
     Local<Script> script = NanCompileScript(source);
     Local<Value> retValue = NanRunScript(script);
-    String::Utf8Value *result;
+
     if (!tryCatch.HasCaught()) {
       result = new String::Utf8Value(retValue->ToString());
     } else {
+      
       worker->m_error = 1;
       Local<Value> err = tryCatch.Exception();
       result = new String::Utf8Value(err->ToString());
+      printf("WorkerProc failed to run script: %s\n", **result);
     }
     worker->m_result = result;
     ctx.Dispose();

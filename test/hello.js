@@ -17,7 +17,7 @@ if (!thread) {
 }
 */
 
-var worker = mt.createWorker('console.log("hey")', function(){
+var worker = mt.createWorker('var a = 10;', function(){
   console.log('back');
 });
 
