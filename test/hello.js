@@ -28,6 +28,7 @@ var createWorker = function(proc, arg, cb) {
 
 var worker = createWorker(function(arg) {
     //console.warn('In sub thread');  // this function is not defined.
+    //console.error('In sub thread');   // Okay!
     console.log('In seperated worker: ' + arg.msg);
   },
   {msg: 'Hello World--'},

@@ -4,11 +4,6 @@
 
 using namespace v8;
 
-static const PropertyAttribute attr_ro_dd = (PropertyAttribute)(ReadOnly | DontDelete);
-static const PropertyAttribute attr_ro_de_dd = (PropertyAttribute)(ReadOnly | DontEnum | DontDelete);
-#define SetObjFunction(obj, name, fnname) \
-  obj->Set(NanNew<String>(name), NanNew<FunctionTemplate>(fnname)->GetFunction(), attr_ro_dd);
-
 static Persistent<ObjectTemplate> worker_template;
 static Persistent<String> id_symbol;
 
@@ -76,13 +71,11 @@ void Worker::WorkerProc(uv_work_t *req) {
 
     ctx->Enter();
 
-    //Local<Object> ctx_global = ctx->Global();
-    Local<Object> ctx_global = NanNew(ctx)->Global();
+    Local<Object> ctx_global = ctx->Global();
     Handle<Object> consoleObj = NanNew<Object>();
-    SetObjFunction(consoleObj, "log", console_log);  // console.log()
-    SetObjFunction(consoleObj, "error", console_error);  // console.error()
-    //consoleObj->Set(NanNew<String>("log"), NanNew<FunctionTemplate>(console_log)->GetFunction());
-    ctx_global->Set(NanNew<String>("console"), consoleObj, attr_ro_dd);
+    consoleObj->Set(NanNew<String>("log"), NanNew<FunctionTemplate>(console_log)->GetFunction());
+    consoleObj->Set(NanNew<String>("error"), NanNew<FunctionTemplate>(console_error)->GetFunction());
+    ctx_global->Set(NanNew<String>("console"), consoleObj, (PropertyAttribute)(ReadOnly | DontDelete));
 
 
     TryCatch tryCatch;
