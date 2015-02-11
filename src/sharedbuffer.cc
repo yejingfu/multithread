@@ -28,7 +28,7 @@ SharedBuffer* SharedBuffer::createSharedBuffer(int bufSize) {
   if (buffer_template.IsEmpty()) {
     Local<ObjectTemplate> tpl = ObjectTemplate::New();
     tpl->SetInternalFieldCount(1);
-    tpl->Set(NanNew<String>("id"), NanNew<Integer>(0));
+    tpl->Set(NanNew<String>("id"), NanNew<Integer>(0), (PropertyAttribute)(ReadOnly | DontDelete));
     tpl->Set(NanNew<String>("test"), NanNew<FunctionTemplate>(test));
     NanAssignPersistent(buffer_template, tpl);
   }

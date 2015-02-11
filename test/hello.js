@@ -16,8 +16,10 @@ if (!thread) {
 */
 
 // shared buffer
-//var buf = mt.createSharedBuffer(10);
-//console.log('buf:'+buf.id);
+var buf = mt.createSharedBuffer(10);
+buf.id = 22;
+buf.size = 12;
+console.log(buf.id + '--' + buf.size);
 
 
 // worker
