@@ -11,14 +11,9 @@
 //#include "nan_isolate_data_accessor.h"
 #include "thread.h"
 #include "worker.h"
+#include "sharedbuffer.h"
 
 using namespace v8;
-
-
-NAN_METHOD(SayHello) {
-  NanScope();
-  NanReturnValue(NanNew("Hello World"));
-}
 
 NAN_METHOD(CreateThread) {
   NanScope();
@@ -41,10 +36,21 @@ NAN_METHOD(CreateWorker) {
   NanReturnValue(worker->GetJSObject());
 }
 
+NAN_METHOD(CreateSharedBuffer) {
+  NanScope();
+  if (args.Length() == 0 || !args[0]->IsInt32()) {
+    NanThrowTypeError("Input buffer size to create SharedBuffer object");
+  }
+  Local<Integer> size = Local<Integer>::Cast(args[0]);
+  int bufSize = (int)size->Int32Value();
+  SharedBuffer *buf = SharedBuffer::createSharedBuffer(bufSize);
+  NanReturnValue(buf->getJSObject());
+}
+
 void Init(Handle<Object> exports) {
-  exports->Set(NanNew("hello"), NanNew<FunctionTemplate>(SayHello)->GetFunction());
-  exports->Set(NanNew("createThread"), NanNew<FunctionTemplate>(CreateThread)->GetFunction());
+  //exports->Set(NanNew("createThread"), NanNew<FunctionTemplate>(CreateThread)->GetFunction());
   exports->Set(NanNew("createWorker"), NanNew<FunctionTemplate>(CreateWorker)->GetFunction());
+  exports->Set(NanNew("createSharedBuffer"), NanNew<FunctionTemplate>(CreateSharedBuffer)->GetFunction());
 }
 
 NODE_MODULE(multithread, Init)

@@ -1,8 +1,6 @@
 // test
 var mt = require('../build/Release/multithread');
 
-console.log(mt.hello());
-
 /*
 var thread = mt.createThread();
 if (!thread) {
@@ -17,6 +15,12 @@ if (!thread) {
 }
 */
 
+// shared buffer
+//var buf = mt.createSharedBuffer(10);
+//console.log('buf:'+buf.id);
+
+
+// worker
 var createWorker = function(proc, arg, cb) {
   if (typeof proc !== 'function' || typeof arg !== 'object')
     return undefined;
