@@ -7,7 +7,6 @@
 
 class SharedBuffer {
 public:
-  SharedBuffer(int sz);
   ~SharedBuffer();
 
   static SharedBuffer* createSharedBuffer(int bufSize);
@@ -19,6 +18,8 @@ public:
   v8::Persistent<v8::Object>& getJSObject() { return m_jsobject; }
 
 private:
+  SharedBuffer(int sz);
+
   int m_id;
   int m_size;
 

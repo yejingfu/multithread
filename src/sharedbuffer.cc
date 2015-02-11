@@ -2,6 +2,9 @@
 #include "sharedbuffer.h"
 
 #include <map>
+#include "nan.h"
+
+using namespace v8;
 
 namespace {
   std::map<int, SharedBuffer*> g_sharedBuffers;
@@ -20,11 +23,11 @@ NAN_METHOD(test) {
 //static 
 SharedBuffer* SharedBuffer::createSharedBuffer(int bufSize) {
   SharedBuffer *buf = new SharedBuffer(bufSize);
-  g_sharedBuffers[m_id] = buf;
+  g_sharedBuffers[buf->m_id] = buf;
 
   if (buffer_template.IsEmpty()) {
     Local<ObjectTemplate> tpl = ObjectTemplate::New();
-    tpl->SetInternalFieldCount = 1;
+    tpl->SetInternalFieldCount(1);
     tpl->Set(NanNew<String>("id"), NanNew<Integer>(0));
     tpl->Set(NanNew<String>("test"), NanNew<FunctionTemplate>(test));
     NanAssignPersistent(buffer_template, tpl);
