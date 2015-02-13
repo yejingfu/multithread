@@ -50,7 +50,7 @@ Worker* Worker::Start(const v8::Arguments &args) {
   NanAssignPersistent(worker->m_jsobject, jsObj);
 
   worker->m_work.data = worker;
-  int ret = uv_queue_work(uv_default_loop(), &(worker->m_work), WorkerProc, PostWorkerProc);
+  /*int ret = */uv_queue_work(uv_default_loop(), &(worker->m_work), WorkerProc, PostWorkerProc);
 
   return worker;
 }
