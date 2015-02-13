@@ -89,10 +89,10 @@ Thread* Thread::AsThread(Local<Object> obj) {
 }
 
 //static
-void Thread::Callback(uv_async_t *watcher, int status) {
-  printf("Jingfu: Callback\n");
-/*
+void Thread::OnAsyncWatherWakeup(uv_async_t *watcher, int status) {
   Thread *thread = (Thread*)watcher->data;
+  printf("Jingfu: OnAsyncWatherWakeup: %d\n", thread->m_sig_kill);
+  /*
   if (thread->m_sig_kill) {
     thread->Destroy();
     return;
@@ -156,6 +156,9 @@ void Thread::EventLoop(Thread *thread) {
     int count = 0;
     while(!thread->m_sig_kill) {
       printf("Jingfu: cycle: %d\n", count++);
+      // test
+      uv_async_send(&thread->m_async_watcher);
+
       TryCatch tryCatch;
       String::Utf8Value *str;
       Local<String> source;
@@ -203,7 +206,7 @@ bool Thread::Init() {
 
   CreateJSObject();
 
-  uv_async_init(uv_default_loop(), &m_async_watcher, reinterpret_cast<uv_async_cb>(Callback));
+  uv_async_init(uv_default_loop(), &m_async_watcher, reinterpret_cast<uv_async_cb>(OnAsyncWatherWakeup));
   m_async_watcher.data = (void*)this;
   uv_ref((uv_handle_t*)&m_async_watcher);
 
@@ -251,10 +254,12 @@ void Thread::Destroy() {
     uv_mutex_unlock(&m_idle_mutex);
   }
   uv_thread_join(&m_thread);
+  uv_mutex_destroy(&m_idle_mutex);
   printf("Jingfu: Destroy\n");
   NanSetInternalFieldPointer(NanNew(m_jsobject), 0, NULL);
   NanDisposePersistent(m_jsobject);
   uv_unref((uv_handle_t*)&m_async_watcher);
+  //uv_close((uv_handle_t*)&m_async_watcher, NULL);  // Lead to crash!!
 
   delete this;
 }

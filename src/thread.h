@@ -32,7 +32,7 @@ public:
 
 private:
   explicit Thread();
-  static void Callback(uv_async_t *watcher, int revents);
+  static void OnAsyncWatherWakeup(uv_async_t *watcher, int revents);
 
   bool Init();
   void CreateJSObject();
