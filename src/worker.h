@@ -29,7 +29,9 @@ private:
   v8::String::Utf8Value         *m_result;
   v8::Isolate                   *m_isolate;
   v8::Persistent<v8::Object>    m_jsobject;
+  v8::Persistent<v8::Object>    m_sharedBufferObject;
   v8::String::Utf8Value         *m_script;
+  v8::Persistent<v8::Int32>     m_sharedBufferId;
   v8::Persistent<v8::Object>    m_callback;
 };
 

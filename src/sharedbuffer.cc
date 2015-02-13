@@ -19,22 +19,28 @@ NAN_METHOD(test) {
   NanReturnUndefined();
 }
 
+//static 
+Persistent<ObjectTemplate>& SharedBuffer::objectTemplate() {
+  if (buffer_template.IsEmpty()) {
+    Local<ObjectTemplate> tpl = ObjectTemplate::New();
+    tpl->SetInternalFieldCount(1);
+    tpl->Set(NanNew<String>("id"), NanNew<Integer>(0));
+    tpl->Set(NanNew<String>("test"), NanNew<FunctionTemplate>(test));
+    NanAssignPersistent(buffer_template, tpl);
+  }
+  return buffer_template;
+}
+
 
 //static 
 SharedBuffer* SharedBuffer::createSharedBuffer(int bufSize) {
   SharedBuffer *buf = new SharedBuffer(bufSize);
   g_sharedBuffers[buf->m_id] = buf;
 
-  if (buffer_template.IsEmpty()) {
-    Local<ObjectTemplate> tpl = ObjectTemplate::New();
-    tpl->SetInternalFieldCount(1);
-    tpl->Set(NanNew<String>("id"), NanNew<Integer>(0), (PropertyAttribute)(ReadOnly | DontDelete));
-    tpl->Set(NanNew<String>("test"), NanNew<FunctionTemplate>(test));
-    NanAssignPersistent(buffer_template, tpl);
-  }
+  Persistent<ObjectTemplate>& tpl = objectTemplate();
 
-  Local<Object> jsObj = NanNew(buffer_template)->NewInstance();
-  jsObj->Set(NanNew<String>("id"), NanNew<Integer>(buf->m_id));
+  Local<Object> jsObj = NanNew(tpl)->NewInstance();
+  jsObj->Set(NanNew<String>("id"), NanNew<Integer>(buf->m_id), (PropertyAttribute)(ReadOnly | DontDelete));
   jsObj->Set(NanNew<String>("size"), NanNew<Integer>(buf->m_size));
   NanSetInternalFieldPointer(jsObj, 0, buf);
   NanAssignPersistent(buf->m_jsobject, jsObj);
@@ -57,6 +63,7 @@ SharedBuffer* SharedBuffer::getSharedBuffer(int id) {
 SharedBuffer::SharedBuffer(int sz) {
   m_size = sz;
   m_id = g_count++;
+  printf("Jingfu: sharedBuffer m_id: %d\n", m_id);
 }
 
 SharedBuffer::~SharedBuffer() {

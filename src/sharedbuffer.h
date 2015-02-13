@@ -12,6 +12,7 @@ public:
   static SharedBuffer* createSharedBuffer(int bufSize);
   static void releaseSharedBuffer(int id);
   static SharedBuffer* getSharedBuffer(int id);
+  static v8::Persistent<v8::ObjectTemplate>& objectTemplate();
 
   int id() const { return m_id; }
   int size() const { return m_size; }

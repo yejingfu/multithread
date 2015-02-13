@@ -17,18 +17,19 @@ if (!thread) {
 
 // shared buffer
 var buf = mt.createSharedBuffer(10);
-buf.id = 22;
-buf.size = 12;
+//buf.id = 22;
+//buf.size = 12;
 console.log(buf.id + '--' + buf.size);
 
 
 // worker
-var createWorker = function(proc, arg, cb) {
+var createWorker = function(proc, arg, sharedBuffer, cb) {
   if (typeof proc !== 'function' || typeof arg !== 'object')
     return undefined;
   cb = cb || function() {};
+  var bufId = sharedBuffer ? sharedBuffer.id : undefined;
   var script = '('+proc.toString()+')('+JSON.stringify(arg)+')';
-  var ret = mt.createWorker(script, cb);
+  var ret = mt.createWorker(script, bufId, cb);
   return ret;
 };
 
@@ -36,8 +37,14 @@ var worker = createWorker(function(arg) {
     //console.warn('In sub thread');  // this function is not defined.
     //console.error('In sub thread');   // Okay!
     console.log('In seperated worker: ' + arg.msg);
+    if (sharedBuffer) {
+      console.log('sharedBuffer valid: ' + sharedBuffer.id + '--' + sharedBuffer.size);
+    } else {
+      console.log('sharedBuffer invalid');
+    }
   },
   {msg: 'Hello World--'},
+  buf,
   function(err, status) {
     // console.warn('In main thread');   // OK!!
     if (err)
