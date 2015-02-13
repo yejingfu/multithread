@@ -53,7 +53,6 @@ NAN_METHOD(postMessage) {
 
 NAN_METHOD(DestroyThread) {
   NanScope();
-  printf("Jingfu: DestroyThread\n");
   Thread *thread = Thread::AsThread(args.This());
   if (!thread) {
     return NanThrowTypeError("DestroyThread: missing thread object as input");
@@ -71,21 +70,6 @@ Thread::~Thread() {
 
 //static 
 Thread* Thread::CreateInstance() {
-  if (thread_template.IsEmpty()) {
-    // initialize global variables: id_symbol and thread_template
-
-    Local<String> localSymbol = NanNew<String>("id");
-    NanAssignPersistent(id_symbol, localSymbol);
-
-    Local<ObjectTemplate> localTpl = ObjectTemplate::New();
-    localTpl->SetInternalFieldCount(1);
-    localTpl->Set(localSymbol, NanNew<Integer>(0));
-    localTpl->Set(NanNew<String>("destroy"), NanNew<FunctionTemplate>(DestroyThread));
-    localTpl->Set(NanNew<String>("eval"), NanNew<FunctionTemplate>(Evaluate));
-    NanAssignPersistent(thread_template, localTpl);
-
-  }
-
   Thread* inst = new Thread();
   if (!inst->Init()) {
     inst->Destroy();
@@ -146,13 +130,23 @@ void* ThreadProc_g(void *arg) {
 void Thread::ThreadProc(void *arg) {
   Thread *pThread = (Thread*)arg;
   printf("Jingfu: ThreadProc\n");
+
   pThread->m_isolate = Isolate::New();
   NanSetIsolateData(pThread->m_isolate, pThread);
+
+
   if (v8::Locker::IsActive()) {
     v8::Locker locker(pThread->m_isolate);    // ensure one most thread accecc isolate per time 
     pThread->m_isolate->Enter();
     EventLoop(pThread);
   }
+  printf("Jingfu: ThreadProc 1\n");
+  pThread->m_isolate->Exit();
+    printf("Jingfu: ThreadProc 2\n");
+  //pThread->m_isolate->Dispose();
+    printf("Jingfu: ThreadProc 3\n");
+  pThread->m_isolate = NULL;
+
   // on exit event loop
   printf("Jingfu: exiting sub thread...\n");
   if (pThread->m_tasks.size() == 0) {
@@ -165,15 +159,18 @@ void Thread::ThreadProc(void *arg) {
 
 //static 
 void Thread::EventLoop(Thread *thread) {
-  Isolate::Scope isolate_scope(thread->m_isolate);
+  //Isolate::Scope isolate_scope(thread->m_isolate);
   //{
     NanScope();
-    Local<FunctionTemplate> ftmpl = NanNew<FunctionTemplate>();
-    Local<ObjectTemplate> otmpl = ftmpl->InstanceTemplate();
-    Local<Context> ctx = NanNewContextHandle(NULL, otmpl);
-    NanAssignPersistent(thread->m_ctx, ctx);
-
+    thread->m_ctx = Context::New();
     thread->m_ctx->Enter();
+
+    //Local<FunctionTemplate> ftmpl = NanNew<FunctionTemplate>();
+    //Local<ObjectTemplate> otmpl = ftmpl->InstanceTemplate();
+    //Local<Context> ctx = NanNewContextHandle(NULL, otmpl);
+    //NanAssignPersistent(thread->m_ctx, ctx);
+    //thread->m_ctx->Enter();
+
     Local<Object> global = NanNew(thread->m_ctx)->Global();
     Handle<Object> consoleObj = NanNew<Object>();
     JSObjFn(consoleObj, "log", console_log);
@@ -186,6 +183,7 @@ void Thread::EventLoop(Thread *thread) {
     Local<Object> theThread = NanNew<Object>();
     theThread->Set(NanNew<String>("id"), NanNew<Number>(thread->m_id));
     
+    printf("Jingfu: Begin while\n");
     int count = 0;
     while(!thread->m_sig_kill) {
       printf("Jingfu: cycle: %d\n", count++);
@@ -211,19 +209,21 @@ void Thread::EventLoop(Thread *thread) {
       }
 
       // onIDLE
-      uv_mutex_lock(&(thread->m_idle_mutex));
+      //uv_mutex_lock(&(thread->m_idle_mutex));
       if (thread->m_tasks.size() == 0) {
         thread->m_idle = 1;
+printf("Jingfu: uv_cond_wait begin\n");
         uv_cond_wait(&thread->m_idle_cv, &thread->m_idle_mutex);
+printf("Jingfu: uv_cond_wait end\n");
         thread->m_idle = 0;
-
       }
-      uv_mutex_unlock(&(thread->m_idle_mutex));
+      //uv_mutex_unlock(&(thread->m_idle_mutex));
     }
+    //thread->m_ctx->Exit();
+    //thread->m_ctx.Dispose();
+    //NanDisposePersistent(thread->m_ctx);
 
   //}
-  NanDisposePersistent(thread->m_ctx);
-
 }
 
 bool Thread::Init() {
@@ -231,11 +231,7 @@ bool Thread::Init() {
   m_sig_kill = 0;
   m_idle = 0;
 
-  Local<Object> jsobj = NanNew(thread_template)->NewInstance();
-
-  jsobj->Set(NanNew("id"), NanNew<Integer>(m_id));
-  NanSetInternalFieldPointer(jsobj, 0, this);  // ??
-  NanAssignPersistent(m_jsobject, jsobj);
+  CreateJSObject();
 
   uv_async_init(uv_default_loop(), &m_async_watcher, reinterpret_cast<uv_async_cb>(Callback));
   m_async_watcher.data = (void*)this;
@@ -243,36 +239,52 @@ bool Thread::Init() {
 
   uv_cond_init(&m_idle_cv);
   uv_mutex_init(&m_idle_mutex);
-  //int err = uv_thread_create(&m_thread, ThreadProc, this);
+  int err = uv_thread_create(&m_thread, ThreadProc, this);
 
 
+  /*
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   int err= pthread_create(&m_thread, &attr, ThreadProc_g, this);
   pthread_attr_destroy(&attr);
-
+  */
 
   return !err;
 }
 
+void Thread::CreateJSObject() {
+  Thread *thread = this;
+  // initialize global variables: id_symbol and thread_template
+  Local<String> localSymbol = NanNew<String>("id");
+  NanAssignPersistent(id_symbol, localSymbol);
+  Local<ObjectTemplate> localTpl = ObjectTemplate::New();
+  localTpl->SetInternalFieldCount(1);
+  localTpl->Set(localSymbol, NanNew<Integer>(0));
+  localTpl->Set(NanNew<String>("destroy"), NanNew<FunctionTemplate>(DestroyThread));
+  localTpl->Set(NanNew<String>("eval"), NanNew<FunctionTemplate>(Evaluate));
+  NanAssignPersistent(thread_template, localTpl);
+  Local<Object> jsobj = NanNew(thread_template)->NewInstance();
+  jsobj->Set(NanNew("id"), NanNew<Integer>(thread->m_id));
+  NanSetInternalFieldPointer(jsobj, 0, thread);  // ??
+  NanAssignPersistent(thread->m_jsobject, jsobj);
+}
+
 void Thread::Destroy() {
-  NanScope();
-  printf("Jingfu: Thread::Destroy\n");
+  //NanScope();
   if (m_sig_kill == 0) {
     m_sig_kill = 1;
-    //uv_mutex_lock(&m_idle_mutex);
+    uv_mutex_lock(&m_idle_mutex);
     if (m_idle) {
       uv_cond_signal(&m_idle_cv);
     }
-    //uv_mutex_unlock(&m_idle_mutex);
+    uv_mutex_unlock(&m_idle_mutex);
   }
-  printf("Jingfu: Thread::Destroy 2 \n");
-  //NanSetInternalFieldPointer(NanNew(m_jsobject), 0, NULL);
-  //NanDisposePersistent(m_jsobject);
-  printf("Jingfu: Thread::Destroy 3 \n");
-  //uv_unref((uv_handle_t*)&m_async_watcher);
-  printf("Jingfu: Thread::Destroy 4\n");
+  //printf("Jingfu: Destroy\n");
+  // NanSetInternalFieldPointer(NanNew(m_jsobject), 0, NULL);
+  // NanDisposePersistent(m_jsobject);
+  // uv_unref((uv_handle_t*)&m_async_watcher);
+
   //delete this;
 }
 

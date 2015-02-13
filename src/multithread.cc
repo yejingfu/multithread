@@ -48,7 +48,7 @@ NAN_METHOD(CreateSharedBuffer) {
 }
 
 void Init(Handle<Object> exports) {
-  //exports->Set(NanNew("createThread"), NanNew<FunctionTemplate>(CreateThread)->GetFunction());
+  exports->Set(NanNew("createThread"), NanNew<FunctionTemplate>(CreateThread)->GetFunction());
   exports->Set(NanNew("createWorker"), NanNew<FunctionTemplate>(CreateWorker)->GetFunction());
   exports->Set(NanNew("createSharedBuffer"), NanNew<FunctionTemplate>(CreateSharedBuffer)->GetFunction());
 }

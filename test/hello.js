@@ -1,20 +1,21 @@
 // test
 var mt = require('../build/Release/multithread');
 
-/*
+
 var thread = mt.createThread();
 if (!thread) {
   console.log('thread is undefined');
 } else {
   console.log('thread id: ' + thread.id);
   setTimeout(function() {
-  	  thread.destroy();
+    thread.destroy();
     console.log('done');
-  }, 1000);
+  }, 3000);
 
 }
-*/
 
+
+/*
 // shared buffer
 var buf = mt.createSharedBuffer(10);
 //buf.id = 22;
@@ -60,4 +61,6 @@ if (!worker) {
   console.log('Succeed to create worker : ' + worker.id);
   worker.eval();
 }
+
+*/
 

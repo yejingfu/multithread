@@ -35,6 +35,7 @@ private:
   static void Callback(uv_async_t *watcher, int revents);
 
   bool Init();
+  void CreateJSObject();
 
   uv_async_t    m_async_watcher;
   int           m_id;
