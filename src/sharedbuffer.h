@@ -13,6 +13,7 @@ public:
   static void releaseSharedBuffer(int id);
   static SharedBuffer* getSharedBuffer(int id);
   static v8::Persistent<v8::ObjectTemplate>& objectTemplate();
+  static void bindProperties(v8::Local<v8::Object> &jsObj, SharedBuffer *buf);
 
   int id() const { return m_id; }
   int size() const { return m_size; }

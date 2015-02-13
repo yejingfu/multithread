@@ -41,7 +41,6 @@ Worker* Worker::Start(const v8::Arguments &args) {
   Worker *worker = new Worker();
   worker->m_script = new String::Utf8Value(args[0]);
   if (args[1]->IsNumber()) {
-    printf("Jingfu: the sharedbuffer is valid\n");
     NanAssignPersistent(worker->m_sharedBufferId, args[1]->ToInt32());
   }
   NanAssignPersistent(worker->m_callback, args[2]->ToObject());
@@ -83,32 +82,17 @@ void Worker::WorkerProc(uv_work_t *req) {
     ctx_global->Set(NanNew<String>("console"), consoleObj, (PropertyAttribute)(ReadOnly | DontDelete));
 
     if (!worker->m_sharedBufferId.IsEmpty()) {
-      printf("Jingfu SharedBuffer Id: %d\n", (int)worker->m_sharedBufferId->Value());
       SharedBuffer *buf = SharedBuffer::getSharedBuffer((int)worker->m_sharedBufferId->Value());
       if (buf) {
-        printf("Jingfu: set SharedBuffer JS Object\n");
-
         Local<ObjectTemplate> sharedBufTpl = ObjectTemplate::New();
-        //sharedBufTpl->SetInternalFieldCount(1);
-        //sharedBufTpl->Set(NanNew<String>("id"), NanNew<Integer>(0));
-        //NanAssignPersistent(buffer_template, tpl);
-
-        Local<Object> jsObj = NanNew(sharedBufTpl)->NewInstance();
-        jsObj->Set(NanNew<String>("id"), NanNew<Integer>(buf->id()), (PropertyAttribute)(ReadOnly | DontDelete));
-        jsObj->Set(NanNew<String>("size"), NanNew<Integer>(buf->size()));
-        NanSetInternalFieldPointer(jsObj, 0, buf);
+        Local<Object> jsObj = sharedBufTpl->NewInstance();
+        SharedBuffer::bindProperties(jsObj, buf);
         NanAssignPersistent(worker->m_sharedBufferObject, jsObj);
-
-        //ctx_global->Set(NanNew<String>("sharedBuffer"), buf->getJSObject());
         ctx_global->Set(NanNew<String>("sharedBuffer"), jsObj);
-
-        printf("Jingfu: set SharedBuffer JS Object Done\n");
       } else {
-        printf("Jingfu: error: SharedBuffer is not valid\n");
         ctx_global->Set(NanNew<String>("sharedBuffer"), Null());
       }
     } else {
-      printf("Jingfu: sharedBufferId is null\n");
       ctx_global->Set(NanNew<String>("sharedBuffer"), Null());
     }
 

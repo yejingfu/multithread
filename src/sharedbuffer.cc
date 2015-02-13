@@ -31,6 +31,13 @@ Persistent<ObjectTemplate>& SharedBuffer::objectTemplate() {
   return buffer_template;
 }
 
+//static 
+void SharedBuffer::bindProperties(v8::Local<v8::Object> &jsObj, SharedBuffer *buf) {
+  jsObj->Set(NanNew<String>("id"), NanNew<Integer>(buf->m_id), (PropertyAttribute)(ReadOnly | DontDelete));
+  jsObj->Set(NanNew<String>("size"), NanNew<Integer>(buf->m_size));
+  NanSetInternalFieldPointer(jsObj, 0, buf);
+}
+
 
 //static 
 SharedBuffer* SharedBuffer::createSharedBuffer(int bufSize) {
@@ -40,11 +47,8 @@ SharedBuffer* SharedBuffer::createSharedBuffer(int bufSize) {
   Persistent<ObjectTemplate>& tpl = objectTemplate();
 
   Local<Object> jsObj = NanNew(tpl)->NewInstance();
-  jsObj->Set(NanNew<String>("id"), NanNew<Integer>(buf->m_id), (PropertyAttribute)(ReadOnly | DontDelete));
-  jsObj->Set(NanNew<String>("size"), NanNew<Integer>(buf->m_size));
-  NanSetInternalFieldPointer(jsObj, 0, buf);
+  bindProperties(jsObj, buf);
   NanAssignPersistent(buf->m_jsobject, jsObj);
-
   return buf;
 }
 
